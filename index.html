@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Project</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="icon" type="image/x-icon" href="./favicon.png" />
+    <link rel="stylesheet" type="text/css" href="./assets/css/style.css" />
+    <script type="text/javascript" src="./assets/js/jquery-3.7.1.min.js"></script>
+  </head>
+  <body>
+    <button id="test1">Login</button>
+    <button id="test2">Check Get Method</button>
+  </body>
+  <script type="text/javascript">
+    var $ = jQuery;
+    $("#test1").click(function () {
+      $.ajax({
+        url: "http://localhost/project/api/admin/login",
+        async: false,
+        method: "POST",
+        dataType: "json",
+        headers: { Authorization: "Basic xxxx" },
+        data: { email: "goodakas@gmail.com", password: "123456" },
+        success: function ($data) {
+          console.log($data);
+        },
+      });
+    });
+
+    $("#test2").click(function () {
+      $.ajax({
+        url: "http://localhost/project/api/",
+        async: false,
+        method: "GET",
+        dataType: "json",
+        headers: { Authorization: "Basic xxxx" },
+        success: function ($data) {
+          console.log($data);
+        },
+      });
+    });
+  </script>
+</html>

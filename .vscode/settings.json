@@ -1,0 +1,22 @@
+{
+  "editor.formatOnSave": true,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "editor.wordWrap": "off",
+  "[php]": {
+    "editor.defaultFormatter": "DEVSENSE.phptools-vscode"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?",
+
+  "workbench.colorTheme": "Visual Studio Dark",
+  "editor.minimap.renderCharacters": false,
+  "editor.minimap.enabled": false,
+  "explorer.confirmDelete": false,
+  "php.validate.executablePath": "E:\\xampp\\php\\php.exe",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.fontSize": 13,
+  "window.zoomLevel": 1.2,
+  "php.version": "8.3",
+  "prettier.printWidth": 400
+}
