@@ -18,5 +18,6 @@
   "editor.fontSize": 13,
   "window.zoomLevel": 1.2,
   "php.version": "8.3",
-  "prettier.printWidth": 400
+  "prettier.printWidth": 400,
+  "liveServer.settings.port": 5555
 }

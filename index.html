@@ -17,12 +17,12 @@
     var $ = jQuery;
     $("#test1").click(function () {
       $.ajax({
-        url: "http://localhost/project/api/admin/login",
+        url: "http://localhost/project-api/api/admin/login",
         async: false,
         method: "POST",
         dataType: "json",
         headers: { Authorization: "Basic xxxx" },
-        data: { email: "goodakas@gmail.com", password: "123456" },
+        data: { email: "goodakas@gmail.com", password: "TT35lhButa0xUpBQCQ9uejByenplSEwraXBuSmk1dWR6WGE1Q2c9PQ==" },
         success: function ($data) {
           console.log($data);
         },
@@ -31,11 +31,12 @@
 
     $("#test2").click(function () {
       $.ajax({
-        url: "http://localhost/project/api/",
+        url: "http://localhost/project-api/api/admin/signup",
         async: false,
-        method: "GET",
+        method: "POST",
         dataType: "json",
         headers: { Authorization: "Basic xxxx" },
+        data: { email: "goodakas@gmail.com", password: "123456" },
         success: function ($data) {
           console.log($data);
         },

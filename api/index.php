@@ -8,31 +8,67 @@ header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Origin, Ca
 header("Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS, DELETE");
 header("Content-type: application/json");
 
-$router = new router("/project/api");
+
+$router = new router("/project-api/api");
 
 $router->get('/', function () {
-    echo json_encode(getallheaders());
-    //echo '{"stats":"OK"}';
+    //return json_encode(getallheaders());
+    return '{"stats":"OK"}';
 });
 
 $router->get('/test/$id/$t', 'good/test');
 
 $router->get('/select/$id?/$limit?/$offset?', function ($request, $payload) {
+    global $db;
     $query = "SELECT * FROM acc_voucherdetail ";
     $query .= ($request->id == 'all' ? "" : "WHERE _voucher_id = '$request->id'");
-    echo getData($query, $request->limit, $request->offset);
+    return $db->getData($query, $request->limit, $request->offset);
 });
 
 $router->group("/admin", function ($groupRouter) {
     $groupRouter->post('/login', function ($request, $payload) {
-        setcookie("token", "Basic xxxx", time() + 60 * 60 * 24 * 1);
-        echo json_encode($payload);
+        //global $db;
+        //echo $payload->email;
+        //return $db->getData($query);
+
+        return str_decrypt($payload->password);
+
     });
-    $groupRouter->post('/logout', function ($request, $payload) {
-        echo json_encode($payload);
+    $groupRouter->post('/signup', function ($request, $payload) {
+        $data = [
+            'name' => 'Johnddd',
+            'email' => null,
+            'age' => '30',
+            'height' => 1.75,
+            'is_active' => true,
+            'tags' => array(1, 2, 3),
+            'birthdate' => '2023-07-25',
+            'website' => 'https://account-care.com',
+            'ip_address' => '10.16.100.244',
+            'profile' => new stdClass(),
+            'status' => 'inactive',
+        ];
+
+        $rules = [
+            'name' => 'required|string|min:3|max:50',
+            'email' => 'email',
+            'age' => 'required|integer',
+            'height' => 'required|float',
+            'is_active' => 'required|boolean',
+            'tags' => 'required|array',
+            'birthdate' => 'required|date',
+            'website' => 'required|url',
+            'ip_address' => 'required|ip',
+            'profile' => 'required|object',
+            'status' => 'required|enum:active,inactive,pending',
+        ];
+
+        echo json_encode(dataValidation($data, $rules));
+
+        //return str_encrypt("mina bazar");
     });
 });
 
 $router->any('/404', function () {
-    echo '{"error":"Invlid url!"}';
+    return '{"error":"Invlid url!"}';
 });

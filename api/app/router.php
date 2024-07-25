@@ -4,10 +4,13 @@ class router
 
   var $mainDir = "";
   var $groupRoute = "";
+  var $requestUrl = "";
+  var $routeCompareArray = array();
 
   function __construct($mainDir = "")
   {
     $this->mainDir = $mainDir;
+    $this->requestUrl = filter_var(@$_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
   }
 
   function get($route, $path_to_include)
@@ -52,11 +55,12 @@ class router
 
   function routeMatch($route)
   {
-    $request_url = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
+    $request_url = $this->requestUrl;
     $request_url = strtok($request_url, '?');
     $request_url = rtrim($request_url, '/');
     $route_parts = explode('/', ltrim($route, $this->mainDir));
     $reurl_parts = explode('/', ltrim($request_url, $this->mainDir));
+    $this->routeCompareArray = array("route" => $route_parts, "url" => $reurl_parts);
     return ($route_parts[0] == $reurl_parts[0]);
   }
 
@@ -100,23 +104,10 @@ class router
         }
       }
 
-      $request_url = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
-      $request_url = strtok($request_url, '?');
-      $request_url = rtrim($request_url, '/');
-      $route_parts = explode('/', $route);
-      $request_url_parts = explode('/', $request_url);
+      $route_parts = $this->routeCompareArray['route'];
+      $request_url_parts = $this->routeCompareArray['url'];
       array_shift($route_parts);
       array_shift($request_url_parts);
-
-      /* if (@$route_parts[0] == '' && count($request_url_parts) == 0) {
-        // Callback function
-        if (is_callable($callback)) {
-          call_user_func_array($callback, []);
-          exit();
-        }
-        include_once $path_to_include;
-        exit();
-      } */
 
       $parameters = [];
       for ($__i__ = 0; $__i__ < count($route_parts); $__i__++) {
@@ -146,8 +137,7 @@ class router
 
       // Callback function
       if (is_callable($callback)) {
-        call_user_func($callback, $request, $payload);
-        exit();
+        exit(call_user_func($callback, $request, $payload));
       }
 
       include_once $path_to_include;
@@ -155,8 +145,7 @@ class router
     } else {
       if ($route == $this->mainDir . "/404") {
         if (is_callable($callback)) {
-          call_user_func_array($callback, []);
-          exit();
+          exit(call_user_func_array($callback, []));
         }
         include_once $path_to_include;
         exit();
