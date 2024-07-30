@@ -1,7 +1,7 @@
 <?php
 include_once ("config.php");
 include_once ("db.class.php");
-include_once ("me.class.php");
+include_once ("st.class.php");
 
 $db = new dbConn();
 
@@ -120,4 +120,48 @@ function createToken($payload)
 function arrayToObject($array)
 {
 	return (object) $array; // json_decode(json_encode($array, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+}
+
+/**
+ * Return a new response from the application.
+ *
+ * @param  string $data
+ * @param  int  $status
+ * @param  bool  $json
+ * @param  array  $headers
+ * @return string
+ */
+function response($data, $status = 200, array $headers = [])
+{
+	foreach ($headers as $key => $value) {
+		header($key . ": " . $value);
+	}
+
+	http_response_code($status);
+	return $data;
+}
+
+/**
+ * Return a new response from the application.
+ *
+ * @param  array $data
+ * @param  int  $status
+ * @param  bool  $json
+ * @param  array  $headers
+ * @return string
+ */
+function responseJson($data, $status = 200, array $headers = [])
+{
+
+	if (is_array($data)) {
+		$data = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		header("Content-type: application/json");
+	}
+
+	foreach ($headers as $key => $value) {
+		header($key . ": " . $value);
+	}
+
+	http_response_code($status);
+	return $data;
 }

@@ -1,5 +1,9 @@
 {
-    "recommendations": [
-        "jerrygoyal.shortcut-menu-bar"
-    ]
+  "recommendations": ["jerrygoyal.shortcut-menu-bar"]
 }
+
+/* 
+PHP IntellisSense
+
+
+*/

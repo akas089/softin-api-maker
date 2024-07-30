@@ -1,0 +1,2 @@
+raw php router class base URL, get, post, put, patch, delete, optional parameter key wise {id} are object, request, 
+payload, group, middleware, controllers, views template blead like Laravel with documentation
