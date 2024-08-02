@@ -34,10 +34,12 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
 
   Ensure your `.htaccess` file is in the root directory. It handles URL rewriting for cleaner routes.
 
-  RewriteEngine On
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule (.\*) index.php [QSA,L]
+Copy
+
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule (.*) index.php [QSA,L]
 
 - **Configure Database**
 
@@ -53,55 +55,59 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
 
   Define your API routes and middleware in `index.php`. Here’s a brief example:
 
-  // Include necessary files
-  require_once 'app/fn.public.php';
+Copy
 
-  header("Access-Control-Allow-Origin: \*");
-  header("Access-Control-Allow-Credentials: true");
-  header("Access-Control-Max-Age: 600");
-  header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Origin, Cache-Control, Pragma, Authorization, Accept, Accept-Encoding");
-  header("Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS, DELETE");
+    // Include necessary files
+    require_once 'app/fn.public.php';
 
-  // Example usage
-  $router = new Router();
-  $router->setBaseUrl(EW_API_BASE_URL); // Set the base URL
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Credentials: true");
+    header("Access-Control-Max-Age: 600");
+    header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Origin, Cache-Control, Pragma, Authorization, Accept, Accept-Encoding");
+    header("Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS, DELETE");
 
-  //Controller function parameters:
-  //parameters (object): that stores route parameters.
-  //payload (object): that stores the payload data from the request.
-  //request (object): that stores the current request data is method, url, headers(array).
+    // Example usage
+    $router = new Router();
+    $router->setBaseUrl(EW_API_BASE_URL); // Set the base URL
 
-  $router->get('/', function ($parameters, $payload, $request) {
-  return ["stats" => "Ok"];
-  });
+    //Controller function parameters:
+    //parameters (object): that stores route parameters.
+    //payload (object): that stores the payload data from the request.
+    //request (object): that stores the current request data is method, url, headers(array).
 
-  // Define routes
-  $router->group(['prefix' => '/user'], function ($router) {
-  $router->post('/signup', 'users\\UserController@signup');
-  $router->post('/login', 'users\\UserController@login');
-  });
+    $router->get('/', function ($parameters, $payload, $request) {
+        return ["stats" => "Ok"];
+    });
 
-  $router->group(['middleware' => 'authMiddleware'], function ($router) {
-  $router->get('/users/{id?}/{limit?}/{offset?}', 'user\\UserController@getUsers');
-  });
+    // Define routes
+    $router->group(['prefix' => '/user'], function ($router) {
+        $router->post('/signup', 'users\\UserController@signup');
+        $router->post('/login', 'users\\UserController@login');
+    });
 
-  // Resolve current request
-  $router->resolve();
+    $router->group(['middleware' => 'authMiddleware'], function ($router) {
+        $router->get('/users/{id?}/{limit?}/{offset?}', 'user\\UserController@getUsers');
+    });
+
+    // Resolve current request
+    $router->resolve();
 
 - **Create Controllers**
 
   Define your controllers (e.g., `Controllers/UserController.php`) to handle requests. Implement methods for actions like signup, login, and fetching users.
 
+Copy
+
     <?php
-  
+
     //Controller function parameters:
     //parameters (object): that stores route parameters.
     //payload (object): that stores the payload data from the request.
     //request (object): that stores the current request data is method, url, headers(array).
-  
+
     class UserController extends Controller
     {
-  
+
         /**
          * signup
          *
@@ -119,7 +125,7 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
                     "_email" => $payload->email,
                     "_password" => password_hash($payload->password, PASSWORD_BCRYPT),
                 ]);
-  
+
                 if (isset($data["insertid"])) {
                     $token = createToken([
                         "id" => $data["insertid"],
@@ -133,7 +139,7 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
                 return $this->responseJson(["error" => $e->getMessage()], 401);
             }
         }
-  
+
         /**
          * login
          *
@@ -145,7 +151,7 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
         {
             try {
                 $data = DB::queryFirstRow("SELECT _id, _password FROM users WHERE _email = '$payload->email'");
-  
+
                 if (password_verify($payload->password, $data["_password"])) {
                     $token = createToken([
                         "id" => $data["_id"],
@@ -159,8 +165,8 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
                 return $this->responseJson(["error" => $e->getMessage()], 401);
             }
         }
-  
-  
+
+
         /**
          * getUsers
          *
@@ -193,19 +199,21 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
 
   Implement middleware functions to handle authentication, authorization, or other pre-processing tasks. Example provided in `index.php`:
 
-  // Middleware example
-  function authMiddleware()
-  {
-  $headers = getallheaders();
+Copy
+
+    // Middleware example
+    function authMiddleware()
+    {
+        $headers = getallheaders();
         if (isset($headers["Authorization"])) {
-  $payload = checkToken($headers["Authorization"]);
-  if (count((array) $payload) == 0) {
-  exit(responseJson(["error" => "Unauthorized User"], 401));
-  }
-  } else {
-  exit(responseJson(["error" => "Unauthorized User"], 401));
-  }
-  }
+            $payload = checkToken($headers["Authorization"]);
+            if (count((array) $payload) == 0) {
+                exit(responseJson(["error" => "Unauthorized User"], 401));
+            }
+        } else {
+            exit(responseJson(["error" => "Unauthorized User"], 401));
+        }
+    }
 
 ###
 
