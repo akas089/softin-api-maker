@@ -1,4 +1,6 @@
 <?php
+if (!session_id())
+    session_start();
 
 // Include necessary files
 require_once 'app/fn.public.php';
@@ -13,41 +15,33 @@ header("Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS, DELETE");
 // Middleware example
 function authMiddleware()
 {
-    /* 
-        if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-        http_response_code(401);
-        echo 'Unauthorized';
-        exit;
-    } 
-        */
+    $headers = getallheaders();
+    if (isset($headers["Authorization"]) || isset($_SESSION['token'])) {
+        $payload = checkToken($headers["Authorization"] ?? $_SESSION['token']);
+        if (count((array) $payload) == 0) {
+            exit(responseJson(["error" => "Unauthorized User"], 401));
+        }
+    } else {
+        exit(responseJson(["error" => "Unauthorized User"], 401));
+    }
 }
 
 // Example usage
 $router = new Router();
-$router->setBaseUrl('/project-api/api'); // Set the base URL
+$router->setBaseUrl(EW_API_BASE_URL); // Set the base URL
 
-$router->get('/', function ($r, $p, $parm) {
-    return '{"stats":"OK"}';
-});
-
-$router->get('/select/{id}/{limit?}/{offset?}', function ($param) {
-    global $db;
-    $query = "SELECT * FROM acc_voucherdetail ";
-    $query .= ($param->id == 'all' ? "" : "WHERE _voucher_id = '$param->id'");
-    $data = $db->getData($query, $param->limit, $param->offset);
-
-    return responseJson($data, 200);
+$router->get('/', function () {
+    return responseJson(["stats" => ($_SESSION['token'] ? "User is currently logged in to this device" : "The system indicates that this device has been logged out.")], 200);
 });
 
 // Define routes
 $router->group(['prefix' => '/user'], function ($router) {
-    $router->post('/signup', 'user\\UserController@index');
-    $router->post('/login/{id}', 'user\\UserController@show');
+    $router->post('/signup', 'users\\UserController@signup');
+    $router->post('/login', 'users\\UserController@login');
 });
 
 $router->group(['middleware' => 'authMiddleware'], function ($router) {
-    $router->get('/user/{id}', 'UserController@update');
-    $router->post('/user/{id}', 'UserController@destroy');
+    $router->get('/users/{id?}/{limit?}/{offset?}', 'users\\UserController@getUsers');
 });
 
 // Resolve current request

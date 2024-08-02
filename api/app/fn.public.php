@@ -1,4 +1,7 @@
 <?php
+if (!session_id())
+	session_start();
+
 include_once ("config.php");
 include_once ("db.class.php");
 include_once ("st.class.php");
@@ -31,13 +34,16 @@ function dataValidation($data, $rules)
 	}
 }
 
-// Remove XSS
+/**
+ * Remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are allowed
+ * This prevents some character re-spacing such as <java\0script> 
+ * Note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs 
+ *
+ * @param  mixed $val
+ * @return void
+ */
 function ew_RemoveXSS($val)
 {
-	// Remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are allowed 
-	// This prevents some character re-spacing such as <java\0script> 
-	// Note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs 
-
 	$val = preg_replace('/([\x00-\x08][\x0b-\x0c][\x0e-\x20])/', '', $val);
 
 	// Straight replacements, the user should never need these since they're normal characters 
@@ -88,6 +94,13 @@ function ew_RemoveXSS($val)
 	return $val;
 }
 
+/**
+ * FileWrite
+ *
+ * @param  mixed $txt
+ * @param  mixed $file
+ * @return void
+ */
 function FileWrite($txt, $file = "")
 {
 	file_put_contents(($file ? $file : 'log/test.txt'), (is_array($txt) || is_object($txt) ? print_r($txt, true) : $txt) . "\r\n", FILE_APPEND);
@@ -98,12 +111,17 @@ function customError($errno, $errstr, $errfile, $errline)
 	FileWrite("Error[$errno]: " . $errstr . ", file: " . $errfile . ", line: " . $errline, "log/error.txt");
 }
 
-// Check token
+/**
+ * Check token
+ *
+ * @param  mixed $token
+ * @return array
+ */
 function checkToken($token)
 {
 	$data = explode('.', $token);
 	$payload = json_decode(base64_decode($data[0]));
-	$signature = str_decrypt(base64_decode($data[1]), EW_PASS_KEY);
+	$signature = str_decrypt($data[1], EW_PASS_KEY);
 	if ((time() - intval($signature)) < (EW_TOKEN_TIME * 60 * 60)) {
 		return $payload;
 	} else {
@@ -111,24 +129,26 @@ function checkToken($token)
 	}
 }
 
-// Create token
+/**
+ * Create token
+ *
+ * @param  mixed $payload
+ * @return string
+ */
 function createToken($payload)
 {
-	return base64_encode(json_encode($payload)) . '.' . base64_encode(str_encrypt(time(), EW_PASS_KEY));
+	$token = base64_encode(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '.' . str_encrypt(time(), EW_PASS_KEY);
+	$_SESSION['token'] = $token;
+	return $token;
 }
 
-function arrayToObject($array)
-{
-	return (object) $array; // json_decode(json_encode($array, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-}
 
 /**
  * Return a new response from the application.
  *
- * @param  string $data
- * @param  int  $status
- * @param  bool  $json
- * @param  array  $headers
+ * @param  mixed $data
+ * @param  mixed $status
+ * @param  mixed $headers
  * @return string
  */
 function response($data, $status = 200, array $headers = [])
@@ -146,7 +166,6 @@ function response($data, $status = 200, array $headers = [])
  *
  * @param  array $data
  * @param  int  $status
- * @param  bool  $json
  * @param  array  $headers
  * @return string
  */
@@ -165,3 +184,35 @@ function responseJson($data, $status = 200, array $headers = [])
 	http_response_code($status);
 	return $data;
 }
+
+/**
+ * fn_ErrorLog
+ *
+ * @param  mixed $error
+ */
+function fn_ErrorLog($error)
+{
+	$errno = $error->getCode();
+	$errline = $error->getLine();
+	$errfile = $error->getFile();
+	$errstr = $error->getMessage();
+	FileWrite(date("Y-m-d H:i:s") . " - [Error: $errno] $errstr ($errfile: $errline) ", "log/error.txt");
+}
+
+/**
+ * PHP Error Handler
+ *
+ * @param  mixed $errno
+ * @param  mixed $errstr
+ * @param  mixed $errfile
+ * @param  mixed $errline
+ * @return bool
+ */
+function fn_ErrorHandler($errno, $errstr, $errfile, $errline)
+{
+	FileWrite(date("Y-m-d H:i:s") . " - [Error: $errno] $errstr ($errfile: $errline) ", "log/error.txt");
+	return true;
+}
+
+set_error_handler("fn_ErrorHandler");
+DB::$logfile = 'log/sql.txt';

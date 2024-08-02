@@ -7,7 +7,7 @@
   "[php]": {
     "editor.defaultFormatter": "DEVSENSE.phptools-vscode"
   },
-  "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?_",
+  "editor.wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?-",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "workbench.colorTheme": "Visual Studio Dark",
   "editor.minimap.renderCharacters": false,
@@ -19,5 +19,6 @@
   "window.zoomLevel": 1.2,
   "php.version": "8.3",
   "prettier.printWidth": 400,
-  "liveServer.settings.port": 5555
+  "liveServer.settings.port": 5555,
+  "liveServer.settings.ignoreFiles": ["**/api/log/**"]
 }

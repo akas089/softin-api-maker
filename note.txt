@@ -1,2 +1,25 @@
 raw php router class base URL, get, post, put, patch, delete, optional parameter key wise {id} are object, request, 
 payload, group, middleware, controllers, views template blead like Laravel with documentation
+
+
+
+Just read my file structure on
+
+/project-root/api
+├── app
+│   ├── config.php
+│   ├── db.class.php
+│   ├── fn.public.php
+│   ├── st.class.php
+├── controllers/
+│   └── UserController.php
+├── views/
+│   ├── users/
+│   │   ├── index.php
+│   │   └── show.php
+├── .htaccess
+└── index.php
+
+
+write documentation and download HTML file
+

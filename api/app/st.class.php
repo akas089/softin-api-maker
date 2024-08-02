@@ -125,16 +125,18 @@ class Router
     /**
      * Get request data.
      * 
-     * @return array
+     * @return object
      */
     public function getRequestData()
     {
-        return [
+        $request = (object) [
             'method' => $_SERVER['REQUEST_METHOD'],
-            'uri' => $_SERVER['REQUEST_URI'],
-            'headers' => getallheaders(),
-            'query' => $_GET,
+            'url' => $_SERVER['REQUEST_URI'],
+            'headers' => "",
         ];
+        $this->request->headers = getallheaders();
+
+        return $request;
     }
 
     /**
@@ -144,7 +146,12 @@ class Router
      */
     private function getPayloadData()
     {
-        return json_decode(file_get_contents('php://input'), true) ?? [];
+        $postData = json_decode(file_get_contents('php://input'));
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $postData = (object) $_POST;
+        }
+        return $postData;
     }
 
     /**
@@ -155,13 +162,6 @@ class Router
      */
     public function resolve()
     {
-        $this->request = [
-            'method' => $_SERVER['REQUEST_METHOD'],
-            'uri' => $_SERVER['REQUEST_URI'],
-            'headers' => getallheaders(),
-            'query' => $_GET,
-        ];
-
         $method = $_SERVER['REQUEST_METHOD'];
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
@@ -182,7 +182,8 @@ class Router
                 }
 
                 $this->parameters = (object) $routeParams; // Convert parameters to an object
-                $this->payload = json_decode(file_get_contents('php://input'), true) ?? [];
+                $this->payload = $this->getPayloadData();
+                $this->request = $this->getRequestData();
 
                 $this->runMiddleware($route['middleware']);
                 return $this->invokeAction($route['action']);
@@ -190,7 +191,9 @@ class Router
         }
 
         http_response_code(404);
-        echo '404 Not Found';
+        header("Content-type: application/json");
+        exit(json_encode(["error" => "404 Not Found"], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
     }
 
     /**
@@ -271,8 +274,7 @@ class Router
      * Invoke the action associated with a route.
      * 
      * @param callable|string $action
-     * @param array $parameters
-     * @return mixed
+     * 
      */
     private function invokeAction($action)
     {
@@ -287,10 +289,10 @@ class Router
                     }
                 }
                 $file = current(explode('@', $action));
-                list($controller, $method) = explode('@', end($control));
+                list($controller, $function) = explode('@', end($control));
                 $this->includeControllerFile($file);
-                $controller = new $controller($this->parameters, $this->payload, $this->request);
-                exit(call_user_func_array([$controller, $method], [$this->parameters, $this->payload, $this->request]));
+                $controller = new $controller();
+                exit(call_user_func_array([$controller, $function], [$this->parameters, $this->payload, $this->request]));
             } else {
                 exit(call_user_func_array($action, [$this->parameters, $this->payload, $this->request]));
             }
@@ -320,24 +322,6 @@ class Router
  */
 class Controller
 {
-    protected $request;
-    protected $payload;
-    protected $parameters;
-
-    /**
-     * Controller constructor.
-     * 
-     * @param array $request
-     * @param array $payload
-     * @param array $parameters
-     */
-    public function __construct($request = [], $payload = [], $parameters = null)
-    {
-        $this->request = $request;
-        $this->payload = $payload;
-        $this->parameters = $parameters;
-    }
-
     /**
      * Render a template with the provided data.
      * 
@@ -363,6 +347,47 @@ class Controller
         $compiledTemplate = $template->compile();
         extract($data);
         eval ("?>" . $compiledTemplate);
+    }
+
+    /**
+     * Return a new response from the application.
+     *
+     * @param  array $data
+     * @param  int  $status
+     * @param  array  $headers
+     * @return string
+     */
+    protected function responseJson($data, $status = 200, array $headers = [])
+    {
+        if (is_array($data)) {
+            $data = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            header("Content-type: application/json");
+        }
+
+        foreach ($headers as $key => $value) {
+            header($key . ": " . $value);
+        }
+
+        http_response_code($status);
+        return $data;
+    }
+
+    /**
+     * Return a new response from the application.
+     *
+     * @param  mixed $data
+     * @param  mixed $status
+     * @param  mixed $headers
+     * @return string
+     */
+    function response($data, $status = 200, array $headers = [])
+    {
+        foreach ($headers as $key => $value) {
+            header($key . ": " . $value);
+        }
+
+        http_response_code($status);
+        return $data;
     }
 }
 
@@ -806,6 +831,9 @@ class Validator
 }
 
 
+/**
+ * dbConn
+ */
 class dbConn extends DB
 {
     function __construct()
@@ -815,10 +843,36 @@ class dbConn extends DB
         DB::$password = EW_CONN_PASS;
     }
 
-    function getData($query, $limit = "", $offset = "")
+    /**
+     * Select data from database
+     *
+     * @param  mixed $query
+     * @param  mixed $limit
+     * @param  mixed $offset
+     * @return array
+     */
+    function selectData($query, $limit = "", $offset = "")
     {
-        $query .= (is_numeric($limit) ? " LIMIT " . $limit : "");
-        $query .= (is_numeric($offset) ? " OFFSET " . ($offset - 1) : "");
-        return DB::query($query);
+        try {
+            $query .= (is_numeric($limit) ? " LIMIT " . $limit : "");
+            $query .= (is_numeric($offset) ? " OFFSET " . ($offset - 1) : "");
+            return DB::query($query);
+        } catch (Exception $e) {
+            return ["error" => $e->getMessage()];
+        }
+    }
+
+    function insertData($table, $data)
+    {
+        try {
+            DB::query("ALTER TABLE `$table` AUTO_INCREMENT = 1");
+            DB::startTransaction();
+            DB::insert($table, $data);
+            DB::commit();
+            return ["insertid" => DB::insertId()];
+        } catch (Exception $e) {
+            DB::rollback();
+            return ["error" => $e->getMessage()];
+        }
     }
 }

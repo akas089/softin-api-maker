@@ -1,13 +1,16 @@
 <?php
 
-DEFINE("EW_DEBUG_ENABLED", TRUE); // TRUE to debug
+DEFINE("EW_DEBUG_ENABLED", 1); // TRUE to debug
 
 //Database connection info PDO
 define("EW_CONN_HOST", 'localhost');
 define("EW_CONN_PORT", 3306);
 define("EW_CONN_USER", 'root');
 define("EW_CONN_PASS", '1234');
-define("EW_CONN_DB", "softinte_10000");
+define("EW_CONN_DB", "api_db");
+
+
+define("EW_API_BASE_URL", "/project-api/api");
 
 //Database connection for MySQL DNS
 define("EW_CONN_DSN", "mysql:host=" . EW_CONN_HOST . ";port=" . EW_CONN_PORT . ";dbname=" . EW_CONN_DB);
