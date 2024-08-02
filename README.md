@@ -34,12 +34,10 @@ Thank you for choosing Softin API Maker! This guide will help you get started wi
 
   Ensure your `.htaccess` file is in the root directory. It handles URL rewriting for cleaner routes.
 
-Copy
-
-    RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule (.*) index.php [QSA,L]
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule (.\*) index.php [QSA,L]
 
 - **Configure Database**
 
@@ -55,59 +53,55 @@ Copy
 
   Define your API routes and middleware in `index.php`. Here’s a brief example:
 
-Copy
+  // Include necessary files
+  require_once 'app/fn.public.php';
 
-    // Include necessary files
-    require_once 'app/fn.public.php';
+  header("Access-Control-Allow-Origin: \*");
+  header("Access-Control-Allow-Credentials: true");
+  header("Access-Control-Max-Age: 600");
+  header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Origin, Cache-Control, Pragma, Authorization, Accept, Accept-Encoding");
+  header("Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS, DELETE");
 
-    header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Max-Age: 600");
-    header("Access-Control-Allow-Headers: X-Requested-With, Content-Type, Origin, Cache-Control, Pragma, Authorization, Accept, Accept-Encoding");
-    header("Access-Control-Allow-Methods: PUT, POST, GET, OPTIONS, DELETE");
+  // Example usage
+  $router = new Router();
+  $router->setBaseUrl(EW_API_BASE_URL); // Set the base URL
 
-    // Example usage
-    $router = new Router();
-    $router->setBaseUrl(EW_API_BASE_URL); // Set the base URL
+  //Controller function parameters:
+  //parameters (object): that stores route parameters.
+  //payload (object): that stores the payload data from the request.
+  //request (object): that stores the current request data is method, url, headers(array).
 
-    //Controller function parameters:
-    //parameters (object): that stores route parameters.
-    //payload (object): that stores the payload data from the request.
-    //request (object): that stores the current request data is method, url, headers(array).
+  $router->get('/', function ($parameters, $payload, $request) {
+  return ["stats" => "Ok"];
+  });
 
-    $router->get('/', function ($parameters, $payload, $request) {
-        return ["stats" => "Ok"];
-    });
+  // Define routes
+  $router->group(['prefix' => '/user'], function ($router) {
+  $router->post('/signup', 'users\\UserController@signup');
+  $router->post('/login', 'users\\UserController@login');
+  });
 
-    // Define routes
-    $router->group(['prefix' => '/user'], function ($router) {
-        $router->post('/signup', 'users\\UserController@signup');
-        $router->post('/login', 'users\\UserController@login');
-    });
+  $router->group(['middleware' => 'authMiddleware'], function ($router) {
+  $router->get('/users/{id?}/{limit?}/{offset?}', 'user\\UserController@getUsers');
+  });
 
-    $router->group(['middleware' => 'authMiddleware'], function ($router) {
-        $router->get('/users/{id?}/{limit?}/{offset?}', 'user\\UserController@getUsers');
-    });
-
-    // Resolve current request
-    $router->resolve();
+  // Resolve current request
+  $router->resolve();
 
 - **Create Controllers**
 
   Define your controllers (e.g., `Controllers/UserController.php`) to handle requests. Implement methods for actions like signup, login, and fetching users.
 
-Copy
-
     <?php
-
+  
     //Controller function parameters:
     //parameters (object): that stores route parameters.
     //payload (object): that stores the payload data from the request.
     //request (object): that stores the current request data is method, url, headers(array).
-
+  
     class UserController extends Controller
     {
-
+  
         /**
          * signup
          *
@@ -125,7 +119,7 @@ Copy
                     "_email" => $payload->email,
                     "_password" => password_hash($payload->password, PASSWORD_BCRYPT),
                 ]);
-
+  
                 if (isset($data["insertid"])) {
                     $token = createToken([
                         "id" => $data["insertid"],
@@ -139,7 +133,7 @@ Copy
                 return $this->responseJson(["error" => $e->getMessage()], 401);
             }
         }
-
+  
         /**
          * login
          *
@@ -151,7 +145,7 @@ Copy
         {
             try {
                 $data = DB::queryFirstRow("SELECT _id, _password FROM users WHERE _email = '$payload->email'");
-
+  
                 if (password_verify($payload->password, $data["_password"])) {
                     $token = createToken([
                         "id" => $data["_id"],
@@ -165,8 +159,8 @@ Copy
                 return $this->responseJson(["error" => $e->getMessage()], 401);
             }
         }
-
-
+  
+  
         /**
          * getUsers
          *
@@ -199,21 +193,19 @@ Copy
 
   Implement middleware functions to handle authentication, authorization, or other pre-processing tasks. Example provided in `index.php`:
 
-Copy
-
-    // Middleware example
-    function authMiddleware()
-    {
-        $headers = getallheaders();
+  // Middleware example
+  function authMiddleware()
+  {
+  $headers = getallheaders();
         if (isset($headers["Authorization"])) {
-            $payload = checkToken($headers["Authorization"]);
-            if (count((array) $payload) == 0) {
-                exit(responseJson(["error" => "Unauthorized User"], 401));
-            }
-        } else {
-            exit(responseJson(["error" => "Unauthorized User"], 401));
-        }
-    }
+  $payload = checkToken($headers["Authorization"]);
+  if (count((array) $payload) == 0) {
+  exit(responseJson(["error" => "Unauthorized User"], 401));
+  }
+  } else {
+  exit(responseJson(["error" => "Unauthorized User"], 401));
+  }
+  }
 
 ###
 
