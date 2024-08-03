@@ -25,7 +25,7 @@ define("EW_TOKEN_NAME", "token");
 define("EW_TOKEN_TIME", 24); //Set hour
 
 define(
-    "EW_REMOVE_XSS",
+    "XSS_REMOVE_TAG",
     array(
         'javascript',
         'vbscript',

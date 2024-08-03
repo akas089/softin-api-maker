@@ -9,14 +9,14 @@ include_once ("st.class.php");
 $db = new dbConn();
 
 // Encrypt
-function str_encrypt($str, $key = EW_PASS_KEY)
+function strEncrypt($str, $key = EW_PASS_KEY)
 {
 	$encryptor = new Encryptor($key);
 	return $encryptor->encrypt($str);
 }
 
 // Decrypt
-function str_decrypt($str, $key = EW_PASS_KEY)
+function strDecrypt($str, $key = EW_PASS_KEY)
 {
 	$encryptor = new Encryptor($key);
 	return $encryptor->decrypt($str);
@@ -39,12 +39,12 @@ function dataValidation($data, $rules)
  * This prevents some character re-spacing such as <java\0script> 
  * Note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs 
  *
- * @param  mixed $val
- * @return void
+ * @param  string $val
+ * @return string
  */
-function ew_RemoveXSS($val)
+function xssRemove($value)
 {
-	$val = preg_replace('/([\x00-\x08][\x0b-\x0c][\x0e-\x20])/', '', $val);
+	$val = preg_replace('/([\x00-\x08][\x0b-\x0c][\x0e-\x20])/', '', $value);
 
 	// Straight replacements, the user should never need these since they're normal characters 
 	// This prevents like <IMG SRC=&#X40&#X61&#X76&#X61&#X73&#X63&#X72&#X69&#X70&#X74&#X3A&#X61&#X6C&#X65&#X72&#X74&#X28&#X27&#X58&#X53&#X53&#X27&#X29> 
@@ -66,7 +66,7 @@ function ew_RemoveXSS($val)
 	}
 
 	// Now the only remaining whitespace attacks are \t, \n, and \r 
-	$ra = EW_REMOVE_XSS; // Note: Customize XSS_ARRAY in ewcfg*.php
+	$ra = XSS_REMOVE_TAG; // Note: Customize XSS_ARRAY in config.php
 	$found = true; // Keep replacing as long as the previous round replaced something 
 	while ($found == true) {
 		$val_before = $val;
@@ -97,24 +97,23 @@ function ew_RemoveXSS($val)
 /**
  * FileWrite
  *
- * @param  mixed $txt
- * @param  mixed $file
- * @return void
+ * @param  string|array $txt
+ * @param  string $file
  */
-function FileWrite($txt, $file = "")
+function fileWrite($txt, $file = "")
 {
 	file_put_contents(($file ? $file : 'log/test.txt'), (is_array($txt) || is_object($txt) ? print_r($txt, true) : $txt) . "\r\n", FILE_APPEND);
 }
 
 function customError($errno, $errstr, $errfile, $errline)
 {
-	FileWrite("Error[$errno]: " . $errstr . ", file: " . $errfile . ", line: " . $errline, "log/error.txt");
+	fileWrite("Error[$errno]: " . $errstr . ", file: " . $errfile . ", line: " . $errline, "log/error.txt");
 }
 
 /**
  * Check token
  *
- * @param  mixed $token
+ * @param  string $token
  * @return array
  */
 function checkToken($token)
@@ -122,7 +121,7 @@ function checkToken($token)
 	try {
 		$data = explode('.', $token);
 		$payload = json_decode(base64_decode($data[0]));
-		$signature = str_decrypt($data[1], EW_PASS_KEY);
+		$signature = strDecrypt($data[1], EW_PASS_KEY);
 		if ((time() - intval($signature)) < (EW_TOKEN_TIME * 60 * 60)) {
 			return $payload;
 		} else {
@@ -136,12 +135,12 @@ function checkToken($token)
 /**
  * Create token
  *
- * @param  mixed $payload
+ * @param  array $payload
  * @return string
  */
 function createToken($payload)
 {
-	$token = base64_encode(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '.' . str_encrypt(time(), EW_PASS_KEY);
+	$token = base64_encode(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . '.' . strEncrypt(time(), EW_PASS_KEY);
 	$_SESSION['token'] = $token;
 	return $token;
 }
@@ -150,10 +149,10 @@ function createToken($payload)
 /**
  * Return a new response from the application.
  *
- * @param  mixed $data
- * @param  mixed $status
- * @param  mixed $headers
- * @return string
+ * @param  array $data
+ * @param  numeric $status
+ * @param  array $headers
+ * @return array
  */
 function response($data, $status = 200, array $headers = [])
 {
@@ -169,7 +168,7 @@ function response($data, $status = 200, array $headers = [])
  * Return a new response from the application.
  *
  * @param  array $data
- * @param  int  $status
+ * @param  numeric  $status
  * @param  array  $headers
  * @return string
  */
