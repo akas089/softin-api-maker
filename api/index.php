@@ -44,5 +44,10 @@ $router->group(['middleware' => 'authMiddleware'], function ($router) {
     $router->get('/users/{id?}/{limit?}/{offset?}', 'users\\UserController@getUsers');
 });
 
+$router->get('/logout', function () {
+    session_destroy();
+    exit(responseJson(["logout" => "true"], 200));
+});
+
 // Resolve current request
 $router->resolve();

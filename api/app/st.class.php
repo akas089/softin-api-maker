@@ -132,9 +132,9 @@ class Router
         $request = (object) [
             'method' => $_SERVER['REQUEST_METHOD'],
             'url' => $_SERVER['REQUEST_URI'],
-            'headers' => "",
+            'headers' => null,
         ];
-        $this->request->headers = getallheaders();
+        $request->headers = getallheaders();
 
         return $request;
     }
@@ -376,8 +376,8 @@ class Controller
      * Return a new response from the application.
      *
      * @param  array $data
-     * @param  int  $status
-     * @param  array  $headers
+     * @param  int $status
+     * @param  array $headers
      * @return array
      */
     function response($data, $status = 200, array $headers = [])

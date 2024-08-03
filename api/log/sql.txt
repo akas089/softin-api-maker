@@ -646,3 +646,87 @@ QUERY: SELECT * FROM users
 RUNTIME: 2.605915 ms
 RETURNED ROWS: 2
 
+[2024-08-03 14:45:04]
+QUERY: ALTER TABLE `users` AUTO_INCREMENT = 1
+RUNTIME: 64.898968 ms
+
+[2024-08-03 14:45:04]
+QUERY: START TRANSACTION
+RUNTIME: 0.619888 ms
+
+[2024-08-03 14:45:04]
+QUERY: INSERT INTO `users` (`_name`,`_email`,`_password`) VALUES (?,?,?)
+PARAMS: Md. Alamgir Hossain, softin@gmail.com, $2y$10$ZYRVUCLH6UkJCe9v.tIZVOR.Yde9mcp8Ng8N4duFb7XBPWCtO8z7K
+RUNTIME: 7.970810 ms
+AFFECTED ROWS: 1
+
+[2024-08-03 14:45:04]
+QUERY: COMMIT
+RUNTIME: 1.825094 ms
+
+[2024-08-03 14:45:17]
+QUERY: SELECT * FROM users
+RUNTIME: 27.065992 ms
+RETURNED ROWS: 1
+
+[2024-08-03 14:45:24]
+QUERY: SELECT _id, _password FROM users WHERE _email = 'softin@gmail.com'
+RUNTIME: 22.564173 ms
+RETURNED ROWS: 1
+
+[2024-08-03 14:48:23]
+QUERY: SELECT _id, _password FROM users WHERE _email = 'softin@gmail.com'
+RUNTIME: 15.635014 ms
+RETURNED ROWS: 1
+
+[2024-08-03 14:48:25]
+QUERY: ALTER TABLE `users` AUTO_INCREMENT = 1
+RUNTIME: 8.056879 ms
+
+[2024-08-03 14:48:25]
+QUERY: START TRANSACTION
+RUNTIME: 0.372171 ms
+
+[2024-08-03 14:48:25]
+QUERY: INSERT INTO `users` (`_name`,`_email`,`_password`) VALUES (?,?,?)
+PARAMS: Md. Alamgir Hossain, softin@gmail.com, $2y$10$1Qyg.JkrQcnV9WLVMtdagOYeHNNGbal0TaJflQKn65AbTouf3RA42
+RUNTIME: 4.881144 ms
+ERROR: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'softin@gmail.com' for key 'users_email_unique'
+
+[2024-08-03 14:48:25]
+QUERY: ROLLBACK
+RUNTIME: 1.199007 ms
+
+[2024-08-03 14:53:20]
+QUERY: ALTER TABLE `users` AUTO_INCREMENT = 1
+RUNTIME: 26.497841 ms
+
+[2024-08-03 14:53:20]
+QUERY: START TRANSACTION
+RUNTIME: 0.321865 ms
+
+[2024-08-03 14:53:20]
+QUERY: INSERT INTO `users` (`_name`,`_email`,`_password`) VALUES (?,?,?)
+PARAMS: Md. Alamgir Hossain, softin@gmail.com, $2y$10$5edvE.zkGId4kLs8ZRCqRO06.TlMIHz6gAvzZv7ej5QHKpv6Q/Gpu
+RUNTIME: 2.341986 ms
+ERROR: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'softin@gmail.com' for key 'users_email_unique'
+
+[2024-08-03 14:53:20]
+QUERY: ROLLBACK
+RUNTIME: 1.827002 ms
+
+[2024-08-03 14:53:23]
+QUERY: SELECT _id, _password FROM users WHERE _email = 'softin@gmail.com'
+RUNTIME: 14.503956 ms
+RETURNED ROWS: 1
+
+[2024-08-03 14:53:26]
+QUERY: SELECT * FROM users
+RUNTIME: 21.710157 ms
+RETURNED ROWS: 1
+
+[2024-08-03 14:53:41]
+QUERY: SELECT * FROM users
+RUNTIME: 14.955997 ms
+RETURNED ROWS: 1
+

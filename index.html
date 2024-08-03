@@ -11,6 +11,7 @@
   <body>
     <button type="button" id="test1">Signup</button>
     <button type="button" id="test2">login</button>
+    <button type="button" id="test3">logout</button>
     <br /><br />
     <a href="http://localhost/project-api/api" target="_blank">API Check</a><br />
     <a href="http://localhost/project-api/api/users" target="_blank">Get Users</a><br />
@@ -37,6 +38,18 @@
         method: "POST",
         dataType: "json",
         data: { email: "softin@gmail.com", password: "123456" },
+        success: function ($data) {
+          console.log($data);
+        },
+      });
+    });
+
+    $("#test3").click(function () {
+      $.ajax({
+        url: "http://localhost/project-api/api/logout",
+        async: false,
+        method: "GET",
+        dataType: "json",
         success: function ($data) {
           console.log($data);
         },

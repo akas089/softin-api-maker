@@ -14,3 +14,6 @@
 2024-08-01 16:07:32 - [Error: 2] Undefined array key "token" (E:\xampp\htdocs\project-api\api\index.php: 33) 
 2024-08-01 16:08:32 - [Error: 2] Undefined array key "token" (E:\xampp\htdocs\project-api\api\index.php: 33) 
 2024-08-01 16:22:13 - [Error: 2] Undefined array key "token" (E:\xampp\htdocs\project-api\api\index.php: 33) 
+2024-08-03 14:44:16 - [Error: 2] Undefined array key "token" (E:\xampp\htdocs\project-api\api\index.php: 34) 
+2024-08-03 14:44:19 - [Error: 2] Undefined array key "token" (E:\xampp\htdocs\project-api\api\index.php: 34) 
+2024-08-03 14:44:37 - [Error: 2] Undefined array key "token" (E:\xampp\htdocs\project-api\api\index.php: 34) 
