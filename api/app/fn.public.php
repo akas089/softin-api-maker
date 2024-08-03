@@ -119,13 +119,17 @@ function customError($errno, $errstr, $errfile, $errline)
  */
 function checkToken($token)
 {
-	$data = explode('.', $token);
-	$payload = json_decode(base64_decode($data[0]));
-	$signature = str_decrypt($data[1], EW_PASS_KEY);
-	if ((time() - intval($signature)) < (EW_TOKEN_TIME * 60 * 60)) {
-		return $payload;
-	} else {
-		return array();
+	try {
+		$data = explode('.', $token);
+		$payload = json_decode(base64_decode($data[0]));
+		$signature = str_decrypt($data[1], EW_PASS_KEY);
+		if ((time() - intval($signature)) < (EW_TOKEN_TIME * 60 * 60)) {
+			return $payload;
+		} else {
+			return [];
+		}
+	} catch (Exception $e) {
+		return [];
 	}
 }
 

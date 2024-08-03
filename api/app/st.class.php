@@ -375,10 +375,10 @@ class Controller
     /**
      * Return a new response from the application.
      *
-     * @param  mixed $data
-     * @param  mixed $status
-     * @param  mixed $headers
-     * @return string
+     * @param  array $data
+     * @param  int  $status
+     * @param  array  $headers
+     * @return array
      */
     function response($data, $status = 200, array $headers = [])
     {
@@ -474,7 +474,7 @@ class Encryptor
      * Constructor
      *
      * @param string $key The passkey used for encryption and decryption. 
-     *                    It is hashed to ensure a 32-byte length suitable for AES-256.
+     *               It is hashed to ensure a 32-byte length suitable for AES-256.
      */
     public function __construct($key)
     {
@@ -830,7 +830,6 @@ class Validator
     }
 }
 
-
 /**
  * dbConn
  */
@@ -844,11 +843,50 @@ class dbConn extends DB
     }
 
     /**
+     * rawQuery
+     *
+     * @param  string $query
+     * @return array
+     */
+    function rawQuery($query)
+    {
+        try {
+            DB::startTransaction();
+            $data = DB::query($query);
+            DB::commit();
+            return ["data" => $data, "insertid" => DB::insertId(), "affectedrows" => DB::affectedRows()];
+        } catch (Exception $e) {
+            DB::rollback();
+            return ["error" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Select first row or first field data from database
+     *
+     * @param  string $query
+     * @param  bool $firstField
+     * @return array|string
+     */
+    function selectFirstRow($query, $firstField = false)
+    {
+        try {
+            if (!$firstField) {
+                return DB::queryFirstRow($query);
+            } else {
+                return DB::queryFirstField($query);
+            }
+        } catch (Exception $e) {
+            return ["error" => $e->getMessage()];
+        }
+    }
+
+    /**
      * Select data from database
      *
-     * @param  mixed $query
-     * @param  mixed $limit
-     * @param  mixed $offset
+     * @param  string $query
+     * @param  numeric $limit
+     * @param  numeric $offset
      * @return array
      */
     function selectData($query, $limit = "", $offset = "")
@@ -862,14 +900,95 @@ class dbConn extends DB
         }
     }
 
-    function insertData($table, $data)
+    /**
+     * insertData
+     *
+     * @param  string $table
+     * @param  array $data
+     * @param  bool $ignore
+     * @return array
+     */
+    function insertData($table, $data, $ignore = false)
     {
         try {
             DB::query("ALTER TABLE `$table` AUTO_INCREMENT = 1");
             DB::startTransaction();
-            DB::insert($table, $data);
+            if ($ignore) {
+                DB::insertIgnore($table, $data);
+            } else {
+                DB::insert($table, $data);
+            }
+
             DB::commit();
             return ["insertid" => DB::insertId()];
+        } catch (Exception $e) {
+            DB::rollback();
+            return ["error" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * insertUpdateData
+     *
+     * @param  string $table
+     * @param  array $data
+     * @param  array optional $where
+     * @return array
+     */
+    function insertUpdateData($table, $data, $where = [])
+    {
+        try {
+            DB::query("ALTER TABLE `$table` AUTO_INCREMENT = 1");
+            DB::startTransaction();
+            if (count($where) > 0) {
+                DB::insertUpdate($table, $data, $where);
+            } else {
+                DB::insertUpdate($table, $data);
+            }
+            DB::commit();
+            return ["insertid" => DB::insertId()];
+        } catch (Exception $e) {
+            DB::rollback();
+            return ["error" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * updateData
+     *
+     * @param  string $table
+     * @param  array $data
+     * @param  array $where
+     * @return array
+     */
+    function updateData($table, $data, $where)
+    {
+        try {
+            DB::startTransaction();
+            DB::update($table, $data, $where);
+            DB::commit();
+            return ["affectedrows" => DB::affectedRows()];
+        } catch (Exception $e) {
+            DB::rollback();
+            return ["error" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * deleteData
+     *
+     * @param  string $table
+     * @param  array $where
+     * @return array
+     */
+    function deleteData($table, $where)
+    {
+        try {
+            DB::query("ALTER TABLE `$table` AUTO_INCREMENT = 1");
+            DB::startTransaction();
+            DB::delete($table, $where);
+            DB::commit();
+            return ["affectedrows" => DB::affectedRows()];
         } catch (Exception $e) {
             DB::rollback();
             return ["error" => $e->getMessage()];
