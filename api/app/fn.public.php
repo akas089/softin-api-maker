@@ -91,7 +91,7 @@ function xssRemove($value)
 			}
 		}
 	}
-	return $val;
+	return addslashes($val);
 }
 
 /**

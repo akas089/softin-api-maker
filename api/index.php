@@ -31,7 +31,7 @@ $router = new Router();
 $router->setBaseUrl(EW_API_BASE_URL); // Set the base URL
 
 $router->get('/', function () {
-    return responseJson(["stats" => ($_SESSION['token'] ? "User is currently logged in to this device" : "The system indicates that this device has been logged out.")], 200);
+    return responseJson(["stats" => (isset($_SESSION['token']) ? "User is currently logged in to this device" : "The system indicates that this device has been logged out.")], 200);
 });
 
 // Define routes
